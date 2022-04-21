@@ -3,11 +3,55 @@ print("IOT gateway")
 import paho.mqtt.client as mqttclient
 import time
 import json
+import serial.tools.list_ports
 import geocoder
 
 BROKER_ADDRESS = "demo.thingsboard.io"
 PORT = 1883
-THINGS_BOARD_ACCESS_TOKEN = "tLZP0U4niMxfzvfXbllk"
+THINGS_BOARD_ACCESS_TOKEN = "Ald9ZYszVssK7fiHSRoD"
+TIMER_CYCLE = 5
+
+
+mess = ""
+bbc_port = "COM7"
+if len(bbc_port) > 0:
+    ser = serial.Serial(port=bbc_port, baudrate=115200)
+    
+
+
+def processData(data):
+    data = data.replace("!", "")
+    data = data.replace("#", "")
+    splitData = data.split(":")
+    print(splitData)
+    temp = 0
+    humi = 0    
+    if(splitData[1] == "TEMP"):
+        temp = splitData[2]
+        collect_data = {'temperature': temp}
+    elif(splitData[1] == "LIGHT"):
+        humi = splitData[2]
+        collect_data = {'humidity': humi}
+    else:
+        collect_data={'temperature': 0}
+    client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
+
+
+def readSerial():
+    bytesToRead = ser.inWaiting()
+    if (bytesToRead > 0):
+        global mess
+        mess = mess + ser.read(bytesToRead).decode("UTF-8")
+        #mess = ser.read(bytesToRead).decode("UTF-8")
+        #print(mess)
+        while ("#" in mess) and ("!" in mess):
+            start = mess.find("!")
+            end = mess.find("#")
+            processData(mess[start:end + 1])
+            if (end == len(mess)):
+                mess = ""
+            else:
+                mess = mess[end+1:]
 
 
 
@@ -18,13 +62,33 @@ def subscribed(client, userdata, mid, granted_qos):
 def recv_message(client, userdata, message):
     print("Received: ", message.payload.decode("utf-8"))
     temp_data = {'value': True}
+    cmd = 1
+    #TODO: Update the cmd to control 2 devices
     try:
         jsonobj = json.loads(message.payload)
-        if jsonobj['method'] == "setValue":
+        if jsonobj['method'] == "setLED":            
             temp_data['value'] = jsonobj['params']
+            if (temp_data['value'] == True):
+                cmd = 1
+            else:
+                cmd = 2
+            
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
+            
+        if jsonobj['method'] == "setFAN":            
+            temp_data['value'] = jsonobj['params']
+            if (temp_data['value'] == True):
+                cmd = 3
+            else:
+                cmd = 4
+            
+            client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
+            
     except:
         pass
+
+    if len(bbc_port) > 0:
+        ser.write((str(cmd) + "#").encode())
 
 
 def connected(client, usedata, flags, rc):
@@ -45,22 +109,11 @@ client.loop_start()
 client.on_subscribe = subscribed
 client.on_message = recv_message
 
-temp = 30
-humi = 50
-light_intensity = 100
+counter = TIMER_CYCLE
 
-longitude = 106.76325
-latitude = 10.86252778
-counter = 0
+while True:    
+    if len(bbc_port) >  0:
+        readSerial()
+    time.sleep(1)
 
-while True:
-    collect_data = {'temperature': temp, 'humidity': humi, 'light':light_intensity,
-                    'longitude':longitude ,'latitude': latitude}
-    temp += 1
-    humi += 1
-    light_intensity += 1
-    my_location = geocoder.ip('me')
-    latitude = my_location.lat
-    longitude = my_location.lng
-    client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
-    time.sleep(5)
+
