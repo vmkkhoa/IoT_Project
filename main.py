@@ -42,8 +42,6 @@ def readSerial():
     if (bytesToRead > 0):
         global mess
         mess = mess + ser.read(bytesToRead).decode("UTF-8")
-        #mess = ser.read(bytesToRead).decode("UTF-8")
-        #print(mess)
         while ("#" in mess) and ("!" in mess):
             start = mess.find("!")
             end = mess.find("#")
@@ -71,8 +69,7 @@ def recv_message(client, userdata, message):
             if (temp_data['value'] == True):
                 cmd = 1
             else:
-                cmd = 2
-            
+                cmd = 2            
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
             
         if jsonobj['method'] == "setFAN":            
@@ -80,8 +77,7 @@ def recv_message(client, userdata, message):
             if (temp_data['value'] == True):
                 cmd = 3
             else:
-                cmd = 4
-            
+                cmd = 4            
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
             
     except:
