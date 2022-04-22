@@ -25,15 +25,17 @@ def processData(data):
     splitData = data.split(":")
     print(splitData)
     temp = 0
-    humi = 0    
+    humi = 0  
+    cmd = 0  
     if(splitData[1] == "TEMP"):
         temp = splitData[2]
         collect_data = {'temperature': temp}
-    elif(splitData[1] == "LIGHT"):
+    elif(splitData[1] == "HUMI"):
         humi = splitData[2]
         collect_data = {'humidity': humi}
-    else:
-        collect_data={'temperature': 0}
+    elif(splitData[1] == "CMD"):
+        cmd = splitData[2]
+        collect_data = {'CMD': cmd}
     client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
 
 
@@ -64,20 +66,20 @@ def recv_message(client, userdata, message):
     #TODO: Update the cmd to control 2 devices
     try:
         jsonobj = json.loads(message.payload)
-        if jsonobj['method'] == "setLED":            
-            temp_data['value'] = jsonobj['params']
-            if (temp_data['value'] == True):
+        if jsonobj['method'] == "setLED":   
+            if (jsonobj['params'] == True):
                 cmd = 1
             else:
-                cmd = 2            
+                cmd = 2        
+            temp_data['value'] = jsonobj['params']                        
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
             
-        if jsonobj['method'] == "setFAN":            
-            temp_data['value'] = jsonobj['params']
-            if (temp_data['value'] == True):
+        elif jsonobj['method'] == "setFAN":  
+            if (jsonobj['params'] == True):
                 cmd = 3
             else:
-                cmd = 4            
+                cmd = 4  
+            temp_data['value'] = jsonobj['params']          
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
             
     except:
