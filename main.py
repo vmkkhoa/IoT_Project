@@ -13,7 +13,7 @@ TIMER_CYCLE = 5
 
 
 mess = ""
-bbc_port = "COM7"
+bbc_port = "COM10"
 if len(bbc_port) > 0:
     ser = serial.Serial(port=bbc_port, baudrate=115200)
     
@@ -25,14 +25,14 @@ def processData(data):
     splitData = data.split(":")
     print(splitData)
     temp = 0
-    humi = 0  
+    light = 0  
     cmd = 0  
     if(splitData[1] == "TEMP"):
         temp = splitData[2]
         collect_data = {'temperature': temp}
-    elif(splitData[1] == "HUMI"):
-        humi = splitData[2]
-        collect_data = {'humidity': humi}
+    elif(splitData[1] == "LIGHT"):
+        light = splitData[2]
+        collect_data = {'light': light}
     elif(splitData[1] == "CMD"):
         cmd = splitData[2]
         collect_data = {'CMD': cmd}
