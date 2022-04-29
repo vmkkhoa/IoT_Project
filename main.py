@@ -13,7 +13,7 @@ TIMER_CYCLE = 5
 
 
 mess = ""
-bbc_port = "COM10"
+bbc_port = "COM11"
 if len(bbc_port) > 0:
     ser = serial.Serial(port=bbc_port, baudrate=115200)
     
@@ -27,6 +27,9 @@ def processData(data):
     temp = 0
     light = 0  
     cmd = 0  
+    led = 0
+    fan = 0
+    id = splitData[0] #ID of sensor
     if(splitData[1] == "TEMP"):
         temp = splitData[2]
         collect_data = {'temperature': temp}
@@ -36,6 +39,12 @@ def processData(data):
     elif(splitData[1] == "CMD"):
         cmd = splitData[2]
         collect_data = {'CMD': cmd}
+    elif(splitData[1] == "LED"):
+        led = splitData[2]
+        collect_data = {'LED': led}
+    elif(splitData[1] == "FAN"):
+        fan = splitData[2]
+        collect_data = {'FAN': fan}   
     client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
 
 
