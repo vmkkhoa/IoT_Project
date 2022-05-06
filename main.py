@@ -1,5 +1,6 @@
 print("IOT gateway")
 
+from operator import le
 import paho.mqtt.client as mqttclient
 import time
 import json
@@ -11,53 +12,52 @@ PORT = 1883
 THINGS_BOARD_ACCESS_TOKEN = "Ald9ZYszVssK7fiHSRoD"
 TIMER_CYCLE = 5
 
+temp1 = 0
+light1 = 0 
+temp2 = 0
+light2 = 0 
+cmd = 0  
+led = 0
+fan = 0
+
 
 mess = ""
-bbc_port = "COM11"
+bbc_port = "COM13"
 if len(bbc_port) > 0:
     ser = serial.Serial(port=bbc_port, baudrate=115200)
     
 
 
 def processData(data):
+    global temp1,temp2,light1,light2,cmd,led,fan
     data = data.replace("!", "")
     data = data.replace("#", "")
     splitData = data.split(":")
     print(splitData)
     
-    temp = 0
-    light = 0  
-    cmd = 0  
-    led = 0
-    fan = 0
-    id = splitData[0] #ID of sensor
-    collect_data = {'temperature1': temp,'light1': light,'temperature2': temp,'light2': light,'CMD': cmd,'LED': led,'FAN': fan}
-    
-    if(id == 1):    #data from sensor 1
-        if(splitData[1] == "TEMP"):
-            temp = splitData[2]
-            collect_data['temperature1']== temp
-        elif(splitData[1] == "LIGHT"):
-            light = splitData[2]
-            collect_data['light1'] = light       
-    elif(id == 2):  #data from sensor 2
-        if(splitData[1] == "TEMP"):
-            temp = splitData[2]
-            collect_data['temperature2']== temp
-        elif(splitData[1] == "LIGHT"):
-            light = splitData[2]
-            collect_data['light2'] = light 
 
+    id = splitData[0] #ID of sensor
+    
+    if id == "1":    #data from sensor 1
+        if(splitData[1] == "TEMP"):
+            temp1 = splitData[2]
+        elif(splitData[1] == "LIGHT"):
+            light1 = splitData[2]
+    elif id == "2":  #data from sensor 2
+        if(splitData[1] == "TEMP"):
+            temp2 = splitData[2] 
+        elif(splitData[1] == "LIGHT"):
+            light2 = splitData[2]
 
     if(splitData[1] == "CMD"):
         cmd = splitData[2]
-        collect_data['CMD']= cmd
     elif(splitData[1] == "LED"):
-        led = splitData[2]
-        collect_data['LED']= led
+        led = splitData[2]  
     elif(splitData[1] == "FAN"):
         fan = splitData[2]
-        collect_data['FAN']= fan;       
+
+    #print(str(temp1) +" "+str(temp2)+" "+str(light1)+" "+str(light2)+" "+str(cmd)+" "+str(led)+" "+str(fan))
+    collect_data = {'temperature1': temp1,'light1': light1,'temperature2': temp2,'light2': light2,'CMD': cmd,'LED': led,'FAN': fan}       
     client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
 
 
