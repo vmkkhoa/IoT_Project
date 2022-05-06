@@ -24,19 +24,32 @@ def processData(data):
     data = data.replace("#", "")
     splitData = data.split(":")
     print(splitData)
+    
     temp = 0
     light = 0  
     cmd = 0  
     led = 0
     fan = 0
     id = splitData[0] #ID of sensor
-    if(splitData[1] == "TEMP"):
-        temp = splitData[2]
-        collect_data = {'temperature': temp}
-    elif(splitData[1] == "LIGHT"):
-        light = splitData[2]
-        collect_data = {'light': light}
-    elif(splitData[1] == "CMD"):
+    collect_data = {'temperature1': temp,'light1': light,'temperature2': temp,'light2': light,'CMD': cmd,'LED': led,'FAN': fan}
+    
+    if(id == 1):
+        if(splitData[1] == "TEMP"):
+            temp = splitData[2]
+            collect_data['temperature1']== temp
+        elif(splitData[1] == "LIGHT"):
+            light = splitData[2]
+            collect_data['light1'] = light       
+    elif(id == 2):
+        if(splitData[1] == "TEMP"):
+            temp = splitData[2]
+            collect_data['temperature2']== temp
+        elif(splitData[1] == "LIGHT"):
+            light = splitData[2]
+            collect_data['light2'] = light 
+
+
+    if(splitData[1] == "CMD"):
         cmd = splitData[2]
         collect_data = {'CMD': cmd}
     elif(splitData[1] == "LED"):
@@ -44,7 +57,9 @@ def processData(data):
         collect_data = {'LED': led}
     elif(splitData[1] == "FAN"):
         fan = splitData[2]
-        collect_data = {'FAN': fan}   
+        collect_data = {'FAN': fan}
+
+       
     client.publish('v1/devices/me/telemetry', json.dumps(collect_data), 1)
 
 
